@@ -14,7 +14,9 @@ import (
 var (
 	app           = kingpin.New("open-ocr-client", "A command-line chat application.")
 	stress        = app.Command("stress", "Do a stress test")
-	numIterations = stress.Arg("numIterations", "how many OCR jobs should it create").Default("100").Int()
+	numIterations = stress.Arg("numIterations", "how many OCR jobs should each goroutine create?").Default("5").Int()
+	numGoroutines = stress.Arg("numGoroutines", "how many goroutines should be launched?").Default("1").Int()
+
 	numTestImages = 5
 )
 
@@ -26,7 +28,7 @@ func main() {
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	case "stress":
 		logg.LogTo("CLI", "do stress test")
-		stressTest()
+		stressTestLauncher()
 	default:
 		logg.LogTo("CLI", "oops, nothing to do")
 	}
@@ -43,7 +45,20 @@ func imageUrls() []string {
 	return imageUrls
 }
 
-func stressTest() {
+func stressTestLauncher() {
+	doneChannel := make(chan bool)
+	for i := 0; i < *numGoroutines; i++ {
+		go stressTest(doneChannel)
+	}
+
+	for i := 0; i < *numGoroutines; i++ {
+		<-doneChannel
+		logg.LogTo("CLI", "goroutine finished: %d", i)
+	}
+
+}
+
+func stressTest(doneChannel chan<- bool) {
 
 	imageUrls := imageUrls()
 	logg.LogTo("CLI", "imageUrls: %v", imageUrls)
@@ -62,6 +77,8 @@ func stressTest() {
 		}
 		logg.LogTo("CLI", "OCR decoded: %v", ocrDecoded)
 	}
+
+	doneChannel <- true
 
 }
 
