@@ -14,14 +14,16 @@ import (
 var (
 	app           = kingpin.New("open-ocr-client", "A command-line chat application.")
 	stress        = app.Command("stress", "Do a stress test")
+	ocrUrl        = stress.Flag("openOcrUrl", "URL where OpenOCR endpoint located").Default("http://api.openocr.net").String()
 	numIterations = stress.Arg("numIterations", "how many OCR jobs should each goroutine create?").Default("5").Int()
 	numGoroutines = stress.Arg("numGoroutines", "how many goroutines should be launched?").Default("1").Int()
 
-	numTestImages = 5
+	numTestImages = 7
 )
 
 func init() {
 	logg.LogKeys["CLI"] = true
+	logg.LogKeys["OCRCLIENT"] = true
 }
 
 func main() {
@@ -64,7 +66,7 @@ func stressTest(doneChannel chan<- bool) {
 	logg.LogTo("CLI", "imageUrls: %v", imageUrls)
 	logg.LogTo("CLI", "numIterations: %v", *numIterations)
 
-	openOcrUrl := "http://api.openocr.net"
+	openOcrUrl := *ocrUrl
 	client := ocrclient.NewHttpClient(openOcrUrl)
 
 	for i := 0; i < *numIterations; i++ {
@@ -73,9 +75,10 @@ func stressTest(doneChannel chan<- bool) {
 		logg.LogTo("CLI", "OCR decoding: %v.  index: %d", imageUrl, index)
 		ocrDecoded, err := client.DecodeImageUrl(imageUrl, ocrclient.ENGINE_TESSERACT)
 		if err != nil {
-			logg.LogPanic("Error decoding image: %v", err)
+			logg.LogError(fmt.Errorf("Error decoding image: %v", err))
+		} else {
+			logg.LogTo("CLI", "OCR decoded: %v", ocrDecoded)
 		}
-		logg.LogTo("CLI", "OCR decoded: %v", ocrDecoded)
 	}
 
 	doneChannel <- true
