@@ -35,18 +35,14 @@ func TestDecodeImageUrl(t *testing.T) {
 
 }
 
-func TestDecodeImageReader(t *testing.T) {
+func IntegrationTestDecodeImageReader(t *testing.T) {
+
+	// this integration test requires a real openocr http rest api
+	// server up and running on port 8080
 
 	port := 8080
 	fakeDecodedOcr := "fake ocr"
-	/*
 
-
-		sourceServer := fakehttp.NewHTTPServerWithPort(port)
-		sourceServer.Start()
-		headers := map[string]string{"Content-Type": "text/plain"}
-		sourceServer.Response(200, headers, fakeDecodedOcr)
-	*/
 	openOcrUrl := fmt.Sprintf("http://localhost:%d", port)
 	openOcrClient := NewHttpClient(openOcrUrl)
 
@@ -56,7 +52,7 @@ func TestDecodeImageReader(t *testing.T) {
 
 	ocrRequest := OcrRequest{
 		EngineType:    ENGINE_TESSERACT,
-		InplaceDecode: true,
+		InplaceDecode: true, // decode in place rather than using rabbitmq
 	}
 
 	ocrDecoded, err := openOcrClient.DecodeImageReader(reader, ocrRequest)
