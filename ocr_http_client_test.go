@@ -21,9 +21,15 @@ func TestDecodeImageUrl(t *testing.T) {
 	sourceServer.Response(200, headers, fakeDecodedOcr)
 
 	openOcrUrl := fmt.Sprintf("http://localhost:%d", port)
+
+	ocrRequest := OcrRequest{
+		ImgUrl:     "http://fake.io/a.png",
+		EngineType: ENGINE_TESSERACT,
+	}
+
 	openOcrClient := NewHttpClient(openOcrUrl)
-	attachmentUrl := "http://fake.io/a.png"
-	ocrDecoded, err := openOcrClient.DecodeImageUrl(attachmentUrl, ENGINE_TESSERACT)
+
+	ocrDecoded, err := openOcrClient.DecodeImageUrl(ocrRequest)
 	assert.True(t, err == nil)
 	assert.Equals(t, ocrDecoded, fakeDecodedOcr)
 
@@ -48,7 +54,12 @@ func TestDecodeImageReader(t *testing.T) {
 	assert.True(t, err == nil)
 	reader := bufio.NewReader(file)
 
-	ocrDecoded, err := openOcrClient.DecodeImageReader(reader, ENGINE_TESSERACT)
+	ocrRequest := OcrRequest{
+		EngineType:    ENGINE_TESSERACT,
+		InplaceDecode: true,
+	}
+
+	ocrDecoded, err := openOcrClient.DecodeImageReader(reader, ocrRequest)
 	logg.Log("err: %v", err)
 	assert.True(t, err == nil)
 	assert.Equals(t, ocrDecoded, fakeDecodedOcr)

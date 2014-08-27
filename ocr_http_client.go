@@ -23,11 +23,8 @@ func NewHttpClient(apiEndpointUrl string) *HttpClient {
 	}
 }
 
-func (c HttpClient) DecodeImageReader(imageReader io.Reader, e OcrEngineType) (string, error) {
-
-	ocrRequest := OcrRequest{
-		EngineType: e,
-	}
+// Send a multipart/related POST request to OpenOCR API endpoint to decode image data
+func (c HttpClient) DecodeImageReader(imageReader io.Reader, ocrRequest OcrRequest) (string, error) {
 
 	// create JSON for POST reqeust
 	jsonBytes, err := json.Marshal(ocrRequest)
@@ -115,12 +112,8 @@ func (c HttpClient) DecodeImageReader(imageReader io.Reader, e OcrEngineType) (s
 
 }
 
-func (c HttpClient) DecodeImageUrl(u string, e OcrEngineType) (string, error) {
-
-	ocrRequest := OcrRequest{
-		ImgUrl:     u,
-		EngineType: e,
-	}
+// Send a JSON POST request to OpenOCR API endpoint to decode image url
+func (c HttpClient) DecodeImageUrl(ocrRequest OcrRequest) (string, error) {
 
 	// create JSON for POST reqeust
 	jsonBytes, err := json.Marshal(ocrRequest)
