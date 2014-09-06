@@ -17,7 +17,7 @@ var (
 	stress        = app.Command("stress", "Do a stress test")
 	upload        = app.Command("upload", "Upload a file to ocr")
 	ocrUrl        = app.Flag("openOcrUrl", "URL where OpenOCR endpoint located").Default("http://api.openocr.net").String()
-	ocrPort        = app.Flag("openOcrPort", "Port where OpenOCR endpoint located").Default("8080").Int()
+	ocrPort       = app.Flag("openOcrPort", "Port where OpenOCR endpoint located").Default("8080").Int()
 	ocrFile       = upload.Flag("file", "File to ocr").Default("ocr_test.png").String()
 	numIterations = stress.Arg("numIterations", "how many OCR jobs should each goroutine create?").Default("5").Int()
 	numGoroutines = stress.Arg("numGoroutines", "how many goroutines should be launched?").Default("1").Int()
@@ -52,7 +52,7 @@ func uploadLauncher() {
 	reader := bufio.NewReader(file)
 
 	ocrRequest := ocrclient.OcrRequest{
-		EngineType:    	ocrclient.ENGINE_TESSERACT,
+		EngineType: ocrclient.ENGINE_TESSERACT,
 		// InplaceDecode: true, // decode in place rather than using rabbitmq
 		InplaceDecode: false, // decode in place rather than using rabbitmq
 	}
@@ -100,10 +100,12 @@ func stressTest(doneChannel chan<- bool) {
 		index := randomIntInRange(0, numTestImages)
 		imageUrl := imageUrls[index]
 		logg.LogTo("CLI", "OCR decoding: %v.  index: %d", imageUrl, index)
+
 		ocrRequest := ocrclient.OcrRequest{
-			ImgUrl: imageUrl,
+			ImgUrl:     imageUrl,
 			EngineType: ocrclient.ENGINE_TESSERACT,
 		}
+
 		ocrDecoded, err := client.DecodeImageUrl(ocrRequest)
 		if err != nil {
 			logg.LogError(fmt.Errorf("Error decoding image: %v", err))
