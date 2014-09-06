@@ -4,10 +4,10 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/couchbaselabs/go.assert"
-	"github.com/couchbaselabs/logg"
 	"github.com/tleyden/fakehttp"
 )
 
@@ -35,13 +35,17 @@ func TestDecodeImageUrl(t *testing.T) {
 
 }
 
-func IntegrationTestDecodeImageReader(t *testing.T) {
+func TestDecodeImageReader(t *testing.T) {
+
+	if os.Getenv("USER") != "tleyden" {
+		t.Skip("skipping test; only meant for developer workstation")
+	}
 
 	// this integration test requires a real openocr http rest api
 	// server up and running on port 8080
 
 	port := 8080
-	fakeDecodedOcr := "fake ocr"
+	fakeDecodedOcr := "You can create local variables"
 
 	openOcrUrl := fmt.Sprintf("http://localhost:%d", port)
 	openOcrClient := NewHttpClient(openOcrUrl)
@@ -50,14 +54,18 @@ func IntegrationTestDecodeImageReader(t *testing.T) {
 	assert.True(t, err == nil)
 	reader := bufio.NewReader(file)
 
+	engineArgs := map[string]interface{}{
+		"lang": "eng",
+	}
+
 	ocrRequest := OcrRequest{
 		EngineType:    ENGINE_TESSERACT,
 		InplaceDecode: true, // decode in place rather than using rabbitmq
+		EngineArgs:    engineArgs,
 	}
 
 	ocrDecoded, err := openOcrClient.DecodeImageReader(reader, ocrRequest)
-	logg.Log("err: %v", err)
 	assert.True(t, err == nil)
-	assert.Equals(t, ocrDecoded, fakeDecodedOcr)
+	assert.True(t, strings.HasPrefix(ocrDecoded, fakeDecodedOcr))
 
 }

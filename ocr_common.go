@@ -10,8 +10,9 @@ const (
 )
 
 type OcrRequest struct {
-	ImgUrl     string        `json:"img_url"`
-	EngineType OcrEngineType `json:"engine"`
+	ImgUrl     string                 `json:"img_url"`
+	EngineType OcrEngineType          `json:"engine"`
+	EngineArgs map[string]interface{} `json:"engine_args"`
 
 	// decode ocr in http handler rather than putting in queue
 	InplaceDecode bool `json:"inplace_decode"`
