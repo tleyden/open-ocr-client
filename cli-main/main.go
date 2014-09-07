@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"math/rand"
 
@@ -8,13 +9,16 @@ import (
 
 	"github.com/alecthomas/kingpin"
 	"github.com/couchbaselabs/logg"
-	"github.com/mcqueenorama/open-ocr-client"
+	"github.com/tleyden/open-ocr-client"
 )
 
 var (
 	app           = kingpin.New("open-ocr-client", "A command-line chat application.")
 	stress        = app.Command("stress", "Do a stress test")
-	ocrUrl        = stress.Flag("openOcrUrl", "URL where OpenOCR endpoint located").Default("http://api.openocr.net").String()
+	upload        = app.Command("upload", "Upload a file to ocr")
+	ocrUrl        = app.Flag("openOcrUrl", "URL where OpenOCR endpoint located").Default("http://api.openocr.net").String()
+	ocrPort        = app.Flag("openOcrPort", "Port where OpenOCR endpoint located").Default("8080").Int()
+	ocrFile       = upload.Flag("file", "File to ocr").Default("ocr_test.png").String()
 	numIterations = stress.Arg("numIterations", "how many OCR jobs should each goroutine create?").Default("5").Int()
 	numGoroutines = stress.Arg("numGoroutines", "how many goroutines should be launched?").Default("1").Int()
 
@@ -31,9 +35,32 @@ func main() {
 	case "stress":
 		logg.LogTo("CLI", "do stress test")
 		stressTestLauncher()
+	case "upload":
+		logg.LogTo("CLI", "do upload")
+		uploadLauncher()
 	default:
 		logg.LogTo("CLI", "oops, nothing to do")
 	}
+}
+
+func uploadLauncher() {
+
+	openOcrUrl := fmt.Sprintf("%s:%d", *ocrUrl, *ocrPort)
+	openOcrClient := ocrclient.NewHttpClient(openOcrUrl)
+
+	file, err := os.Open(*ocrFile)
+	reader := bufio.NewReader(file)
+
+	ocrRequest := ocrclient.OcrRequest{
+		EngineType:    	ocrclient.ENGINE_TESSERACT,
+		// InplaceDecode: true, // decode in place rather than using rabbitmq
+		InplaceDecode: false, // decode in place rather than using rabbitmq
+	}
+
+	ocrDecoded, err := openOcrClient.DecodeImageReader(reader, ocrRequest)
+	logg.Log("results: %s", ocrDecoded)
+	logg.Log("err: %v", err)
+
 }
 
 func imageUrls() []string {
