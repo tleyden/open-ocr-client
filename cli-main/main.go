@@ -8,7 +8,7 @@ import (
 
 	"github.com/alecthomas/kingpin"
 	"github.com/couchbaselabs/logg"
-	"github.com/tleyden/open-ocr-client"
+	"github.com/mcqueenorama/open-ocr-client"
 )
 
 var (
@@ -73,7 +73,11 @@ func stressTest(doneChannel chan<- bool) {
 		index := randomIntInRange(0, numTestImages)
 		imageUrl := imageUrls[index]
 		logg.LogTo("CLI", "OCR decoding: %v.  index: %d", imageUrl, index)
-		ocrDecoded, err := client.DecodeImageUrl(imageUrl, ocrclient.ENGINE_TESSERACT)
+		ocrRequest := ocrclient.OcrRequest{
+			ImgUrl: imageUrl,
+			EngineType: ocrclient.ENGINE_TESSERACT,
+		}
+		ocrDecoded, err := client.DecodeImageUrl(ocrRequest)
 		if err != nil {
 			logg.LogError(fmt.Errorf("Error decoding image: %v", err))
 		} else {
