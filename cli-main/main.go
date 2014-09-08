@@ -52,8 +52,7 @@ func uploadLauncher() {
 	reader := bufio.NewReader(file)
 
 	ocrRequest := ocrclient.OcrRequest{
-		EngineType: ocrclient.ENGINE_TESSERACT,
-		// InplaceDecode: true, // decode in place rather than using rabbitmq
+		EngineType:    ocrclient.ENGINE_TESSERACT,
 		InplaceDecode: false, // decode in place rather than using rabbitmq
 	}
 
